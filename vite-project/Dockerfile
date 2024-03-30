@@ -7,6 +7,9 @@ WORKDIR /app
 # Copy package.json and yarn.lock
 COPY package.json yarn.lock ./
 
+# Set custom network timeout for yarn install
+ENV npm_config_network_timeout=600000
+
 # Install dependencies
 RUN yarn install --frozen-lockfile
 
