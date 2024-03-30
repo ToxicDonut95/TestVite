@@ -1,39 +1,29 @@
-# Stage 1: Build React application
-FROM node:14 as build
+# Use the official Node.js runtime as the base image
+FROM node:18 as build
 
-# Set working directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and yarn.lock
-COPY package.json yarn.lock ./
-
-# Set custom network timeout for yarn install
-ENV npm_config_network_timeout=600000
+# Copy package.json and package-lock.json to the working directory
+COPY package*.json ./
 
 # Install dependencies
-RUN yarn install --frozen-lockfile
+RUN npm install
 
-# Copy the rest of the application code
+# Copy the entire application code to the container
 COPY . .
 
-# Build the React application
-RUN yarn build
+# Build the React app for production
+RUN npm run build
 
+# Use Nginx as the production server
+FROM nginx:alpine
 
-# Stage 2: Setup NGINX server to serve built React app
-FROM nginx:latest
-
-# Copy built React application from the previous stage
+# Copy the built React app to Nginx's web server directory
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Optionally, remove the default NGINX configuration file
-RUN rm -rf /etc/nginx/conf.d/default.conf
-
-# Optionally, copy your NGINX configuration file (if needed)
-COPY nginx.conf /etc/nginx/conf.d/
-
-# Expose port 80 (default HTTP port)
+# Expose port 80 for the Nginx server
 EXPOSE 80
 
-# Start NGINX server in the foreground
+# Start Nginx when the container runs
 CMD ["nginx", "-g", "daemon off;"]
