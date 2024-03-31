@@ -3,24 +3,24 @@ FROM node:21 AS builder
 
 WORKDIR /app
 
-# Copy package.json and yarn.lock to install dependencies
+# Copy package.json and package-lock.json to install dependencies
 COPY package.json .
+COPY package-lock.json .
 
-# Install dependencies
-RUN yarn install --network-concurrency 1 --network-timeout 10000000000
-
+# Install dependencies using npm
+RUN npm install
 
 # Copy the entire application code to the container
 COPY . .
 
 # Build the React app
-RUN yarn run build
+RUN npm run build
 
 # Stage 2: Serve the built app using Nginx
 FROM nginx:alpine
 
 # Copy the built React app from the builder stage to Nginx's web server directory
-COPY --from=builder /app/ /usr/share/nginx/html/
+COPY --from=builder /app/build/ /usr/share/nginx/html/
 
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
