@@ -7,7 +7,8 @@ WORKDIR /app
 COPY package.json .
 
 # Install dependencies
-RUN yarn install
+RUN yarn install --network-concurrency 1 --network-timeout 1000000
+
 
 # Copy the entire application code to the container
 COPY . .
