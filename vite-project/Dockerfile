@@ -1,29 +1,31 @@
-# Use the official Node.js runtime as the base image
-FROM node:18 as build
+# Stage 1: Build the React app
+FROM node:21 AS builder
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
-COPY package*.json ./
+# Copy package.json and yarn.lock to install dependencies
+COPY package.json .
 
 # Install dependencies
-RUN npm install
+RUN yarn install
 
 # Copy the entire application code to the container
 COPY . .
 
-# Build the React app for production
-RUN npm run build
+# Build the React app
+RUN yarn run build
 
-# Use Nginx as the production server
+# Stage 2: Serve the built app using Nginx
 FROM nginx:alpine
 
-# Copy the built React app to Nginx's web server directory
-COPY --from=build /app/build /usr/share/nginx/html
+# Copy the built React app from the builder stage to Nginx's web server directory
+COPY --from=builder /app/ /usr/share/nginx/html/
 
-# Expose port 80 for the Nginx server
+# Copy custom nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose port 80 (Note: This is only for documentation purposes)
 EXPOSE 80
 
-# Start Nginx when the container runs
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
